@@ -9,7 +9,6 @@
     <meta name="author" content="viggoz.com" />
     <title>后台管理 - {{.config.Title}}</title>
     <link rel="shortcut icon" href="./assets/images/favicon.png">
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Arimo:400,700,400italic">
     <link rel="stylesheet" href="assets/css/fonts/linecons/css/linecons.css">
     <link rel="stylesheet" href="assets/css/fonts/fontawesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/bootstrap.css">
@@ -995,6 +994,39 @@
                                     // file.progressBar.removeClass('progress-bar-warning').addClass('progress-bar-red');
                                 }
                             });
+                            $("#web-file-upload").dropzone({
+                                url: '/admin/uploadfile',
+                                // Events
+                                addedfile: function(file) {
+                                    console.log(file);
+                                    let size = parseInt(file.size / 1024, 10);
+                                    size = size < 1024 ? (size + " KB") : (parseInt(size / 1024, 10) + " MB");
+                                    console.log(size);
+                                },
+
+                                uploadprogress: function(file, progress, bytesSent) {
+                                    console.log(file, progress, bytesSent);
+                                },
+
+                                success: function(file) {
+                                    let res = JSON.parse(file.xhr.response);
+                                    console.log(file, res);
+                                    if (res.error == 0) {
+                                        modal.find('.modal-body #web-url').val(res.url);
+                                    } else {
+                                        message("上传失败");
+                                    }
+                                    // file.fileEntryTd.find('td:last').html('<span class="text-success">Uploaded</span>');
+                                    // file.progressBar.removeClass('progress-bar-warning').addClass('progress-bar-success');
+                                },
+
+                                error: function(file) {
+                                    console.log(file);
+                                    message("上传失败");
+                                    // file.fileEntryTd.find('td:last').html('<span class="text-danger">Failed</span>');
+                                    // file.progressBar.removeClass('progress-bar-warning').addClass('progress-bar-red');
+                                }
+                            });
                         });
                         </script>
                         <div class="col-md-12">
@@ -1062,6 +1094,13 @@
                                                     });
                                                 </script>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <button type="button" id="web-file-upload" class="btn btn-white" >点击上传附件</button>
                                         </div>
                                     </div>
                                 </div>

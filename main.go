@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 )
 
 type JsLogin struct {
@@ -109,6 +110,7 @@ func main() {
 		r.GET("/admin", AuthMiddleWare(), GetAdmin)
 		r.POST("/admin", AuthMiddleWare(), PostAdmin)
 		r.POST("/admin/upload", AuthMiddleWare(), PostAdminUpload)
+		r.POST("/admin/uploadfile", AuthMiddleWare(), PostAdminUploadFile)
 	}
 
 	r.Run(fmt.Sprintf("%s:%d", Config.Url, Config.Port))
@@ -621,6 +623,8 @@ func PostAdminUpload(c *gin.Context) {
 		})
 		return
 	}
+	u1 := uuid.NewV4()
+	resetfilename := u1.String()
 
 	filepath := "public/images/uploads/"
 	//如果没有filepath文件目录就创建一个
@@ -629,7 +633,7 @@ func PostAdminUpload(c *gin.Context) {
 			os.MkdirAll(filepath, os.ModePerm)
 		}
 	}
-	path := filepath + file.Filename //路径+文件名上传
+	path := filepath + resetfilename + existing //路径+文件名上传
 
 	if err := c.SaveUploadedFile(file, path); err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -640,7 +644,54 @@ func PostAdminUpload(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"url":     "../assets/images/uploads/" + file.Filename,
+		"url":     "../assets/images/uploads/" + resetfilename + existing,
+		"message": "upload file success.",
+		"error":   0,
+	})
+}
+
+func PostAdminUploadFile(c *gin.Context) {
+	// https://github.com/gin-gonic/examples/blob/master/upload-file/single/main.go
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": err.Error(),
+			"error":   801,
+		})
+		return
+	}
+
+	//获取文件后缀
+	existing := strings.ToLower(Ext(file.Filename))
+	if existing == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "文件类型错误，无法上传。",
+			"error":   802,
+		})
+		return
+	}
+	u1 := uuid.NewV4()
+	resetfilename := u1.String()
+
+	filepath := "public/images/fileuploads/"
+	//如果没有filepath文件目录就创建一个
+	if _, err := os.Stat(filepath); err != nil {
+		if !os.IsExist(err) {
+			os.MkdirAll(filepath, os.ModePerm)
+		}
+	}
+	path := filepath + resetfilename + existing //路径+文件名上传
+
+	if err := c.SaveUploadedFile(file, path); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": err.Error(),
+			"error":   804,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"url":     "assets/images/fileuploads/" + resetfilename + existing,
 		"message": "upload file success.",
 		"error":   0,
 	})
