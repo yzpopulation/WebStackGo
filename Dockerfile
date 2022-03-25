@@ -4,6 +4,7 @@ COPY . .
 RUN apk --update --no-cache --no-progress add git \
     && go env -w GO111MODULE=on \
     && go env -w GOPROXY=https://goproxy.cn,direct \
+    && export GIN_MODE=release \
     && go build -o WebStackGo main.go \
     && rm public/webstack_logos.sketch \
     && mkdir /build/app/ \
@@ -17,6 +18,6 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /build/app/ /app/
 
-EXPOSE 2802
+EXPOSE 80
 
 ENTRYPOINT ["/app/WebStackGo"]
